@@ -1,3 +1,84 @@
+import numpy as np
+
+class Game():
+    def __init__(self):
+        self.__board = None
+        self.__finish = False
+
+    def create_board(self,xlength,ylength):
+        self.__board = np.zeros([xlength,ylength])
+
+    def get_board(self):
+        return self.__board
+
+    def set_board(self, xpos,ypos,name):
+        self.__board[xpos][ypos] = name
+
+    def display_board(self):
+        print(self.get_board())
+
+    def check_is_game_over(self):
+        pass
+
+
+
+class TicTacToe(Game):
+    def __init__(self,pList):
+        super().__init__()
+        self.__validInputs = ["0","1","2"]
+        self.create_board(xlength=3, ylength=3)
+
+    def get_valid_inputs(self):
+        return self.__validInputs
+
+
+class GameManager:
+
+    def __init__(self,currentGame,playerList):
+        self.__game = currentGame
+        self.play_turn(playerList)
+
+    def play_turn(self,playerList):
+
+        for player in playerList:
+            self.ask_for_move(player.get_name())
+
+    def ask_for_move(self,playerName):
+        self.__playerName = playerName
+        self.__playerInput = input("Enter your move: " + self.__playerName)
+
+        self.check_if_valid_inputs(self.__playerInput)
+
+    def check_if_valid_inputs(self,pin):
+        self.__validInputs = self.__game.get_valid_inputs()
+
+        if pin in self.__validInputs:
+            print("yay")
+        else:
+            print("nope")
+
+
+class Player:
+    def __init__(self,name):
+        self.__name = name
+
+    def get_name(self):
+        return self.__name
+
+
+if __name__ == '__main__':
+    players = [Player('Cody'),Player('Troy')]
+    TTT = TicTacToe(players)
+    gm = GameManager(TTT,players)
+    #TTT.display_board()
+
+
+
+
+
+"""
+
+
 class newGame():
 
 
@@ -75,7 +156,7 @@ def askForMove(player):
 def checkIsOver(roundNum):
 
 
-    """
+    
     For reference. These are all the winning x,y coordinates.
 
     [[[0,0],[1,0],[2,0]], #Vertical
@@ -86,7 +167,7 @@ def checkIsOver(roundNum):
     [[2,0],[2,1],[2,2]], #Horizontal
     [[0,0],[1,1],[2,2]], #Diagonal
     [[0,2],[1,1],[2,0]]] #Diagonal
-    """
+    
 
     #Splits the winning combinations up into row and col values to use in a for loop
 
@@ -131,3 +212,5 @@ if __name__ == '__main__':
 
     game = newGame()
     game.play(p1= player("Cody") , p2= player("Troy"))
+    
+    """
