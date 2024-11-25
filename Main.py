@@ -1,4 +1,5 @@
 import numpy as np
+import re
 
 class Game():
     def __init__(self):
@@ -6,56 +7,134 @@ class Game():
         self.__finish = False
 
     def create_board(self,xlength,ylength):
-        self.__board = np.zeros([xlength,ylength])
+        self.__board = [
+            ["", "", ""],
+            ["", "", ""],
+            ["", "", ""]
+        ]
+        self.__testBoard =[
+            ["1", "2", "3"],
+            ["4", "4", "4"],
+            ["7", "8", "9"]
+        ]
+        #self.__board[1][2] = "hi"
 
     def get_board(self):
         return self.__board
 
     def set_board(self, xpos,ypos,name):
-        self.__board[xpos][ypos] = name
+        print(type(self.__board[int(xpos)][int(ypos)]))
+        self.__board[int(xpos)][int(ypos)] = name
 
     def display_board(self):
         print(self.get_board())
 
-    def check_is_game_over(self):
-        pass
+
+#UNFINISHED
+    #what if you use the +1 test and keep going until you get to the wanted len (win) or the end (not a win)
+
+    def is_game_over(self):
+        print("checking is game over")
+        #self.vertical_win()
+
+        win = []
+        for row in range(0,len(self.__testBoard)):
+            for col in range(0,row):
+                #horizontal
+                if self.__testBoard[row][col] == self.__testBoard[row][col+1]:
+                    win.append(self.__testBoard[row][col])
+                print(win)
+
+
+        return False
+
+    """def vertical_win(self):
+        for row in self.__testBoard:
+            if(row[:-1]==row[1:]):
+                print("winner")
+
+    def horizontal_win(self):
+        for row in self.__testBoard:
+            
+            if(col += ):
+                print("winner")
+            else:
+                print(row[:-1])
+                print(row[1:])"""
 
 
 
 class TicTacToe(Game):
-    def __init__(self,pList):
+    def __init__(self,plist):
         super().__init__()
         self.__validInputs = ["0","1","2"]
         self.create_board(xlength=3, ylength=3)
+        self.__board = self.get_board()
 
     def get_valid_inputs(self):
         return self.__validInputs
 
+    def add_move_to_board(self, move,name):
+        self.__xpos = int(move[0])
+        self.__ypos = int(move[1])
+        self.__board[self.__xpos][self.__ypos] = name
+
+    def is_spot_played(self,move):
+        if self.__board[int(move[0])][int(move[1])] == "":
+            return False
+        else:
+            return True
+
 
 class GameManager:
 
-    def __init__(self,currentGame,playerList):
-        self.__game = currentGame
-        self.play_turn(playerList)
+    def __init__(self,currentgame,playerlist):
+        self.__currentGame = currentgame
+        self.__players = playerlist
+        self.__validInputs = None
+        self.__playerInput = None
+
+    def run_game(self):
+
+        while not self.__currentGame.is_game_over():
+            print("new loop")
+            self.play_turn(self.__players)
+        print("finished running game")
+
 
     def play_turn(self,playerList):
 
         for player in playerList:
+            self.__currentGame.display_board()
             self.ask_for_move(player.get_name())
+            if self.__currentGame.is_game_over():
+                return
 
-    def ask_for_move(self,playerName):
-        self.__playerName = playerName
-        self.__playerInput = input("Enter your move: " + self.__playerName)
 
-        self.check_if_valid_inputs(self.__playerInput)
+    def ask_for_move(self,playername):
+        self.__playerName = playername
+        self.__playerInput = input(self.__playerName + ", enter your move in this format: row,col")
 
-    def check_if_valid_inputs(self,pin):
-        self.__validInputs = self.__game.get_valid_inputs()
-
-        if pin in self.__validInputs:
-            print("yay")
+        if not self.check_if_valid_inputs() or self.__currentGame.is_spot_played(self.__playerInput):
+            print("Not valid. Asking again")
+            self.ask_for_move(self.__playerName)
         else:
-            print("nope")
+            print("everything looks good")
+            self.__currentGame.add_move_to_board(self.__playerInput,self.__playerName)
+
+    def check_if_valid_inputs(self):
+        self.__validInputs = self.__currentGame.get_valid_inputs()
+        self.__playerInput = re.findall(r'[0-9]+',self.__playerInput)
+
+        #DON'T FORGET TO MAKE LOGIC TO ONLY GET 2 INPUTS (R,C).
+
+        for val in self.__playerInput:
+            if val not in self.__validInputs:
+                print("Invalid Input, try again")
+                return False
+
+        print("Done checking inputs")
+        return True
 
 
 class Player:
@@ -69,8 +148,10 @@ class Player:
 if __name__ == '__main__':
     players = [Player('Cody'),Player('Troy')]
     TTT = TicTacToe(players)
-    gm = GameManager(TTT,players)
-    #TTT.display_board()
+
+    GameManager(TTT,players).run_game()
+
+    TTT.display_board()
 
 
 
