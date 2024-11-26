@@ -13,9 +13,9 @@ class Game():
             ["", "", ""]
         ]
         self.__testBoard =[
-            ["1", "2", "3"],
-            ["4", "4", "4"],
-            ["7", "8", "9"]
+            ["7", "2", "1"],
+            ["4", "7", "1"],
+            ["4", "8", "7"]
         ]
         #self.__board[1][2] = "hi"
 
@@ -23,44 +23,89 @@ class Game():
         return self.__board
 
     def set_board(self, xpos,ypos,name):
-        print(type(self.__board[int(xpos)][int(ypos)]))
         self.__board[int(xpos)][int(ypos)] = name
 
     def display_board(self):
         print(self.get_board())
 
 
+    def look_inside_board(self,r,c):
+        if r >= len(self.__testBoard):
+            return
+        if c < len(self.__testBoard[r]):
+            print(self.__testBoard[r][c])
+            self.look_inside_board(r,c+1)
+        else:
+            print("next")
+            self.look_inside_board(r+1,0)
+
+
+
 #UNFINISHED
-    #what if you use the +1 test and keep going until you get to the wanted len (win) or the end (not a win)
+
+
+    def search_board(self, row, col, dr, dc, length):
+
+        value = self.__testBoard[row][col]
+        if value is None:
+            return False
+
+        for i in range(length):
+            r = row + i * dr
+            c = col + i * dc
+            # Check bounds and value
+            if not (0 <= r < len(self.__testBoard) and 0 <= c < len(self.__testBoard[0]) and self.__testBoard[r][c] == value):
+                return False
+
+        return True
+
+    def check_pattern(self, length):
+
+        rows = len(self.__testBoard)
+        cols = len(self.__testBoard[0])
+
+        #              right, down, diagonal-right, diagonal-left
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+
+        for row in range(rows):
+            for col in range(cols):
+                for dr, dc in directions:
+                    if self.search_board(row, col, dr, dc, length):
+                        return True, self.__testBoard[row][col]
+
+        return False, None
+
 
     def is_game_over(self):
+
+        # Check for a winner (3 in a row)
+        found, winner = self.check_pattern(3)
+        if found:
+            print(f"Winner: {winner}")
+        else:
+            print("No winner yet.")
+
+
+"""    def is_game_over(self):
         print("checking is game over")
         #self.vertical_win()
 
         win = []
         for row in range(0,len(self.__testBoard)):
-            for col in range(0,row):
+            for col in range(0,len(self.__testBoard)):
                 #horizontal
-                if self.__testBoard[row][col] == self.__testBoard[row][col+1]:
+                #print(row, col)
+
+                self.look_inside_board(row,col)
+
+                if self.__testBoard[row][col] == self.__testBoard[row][col]:
                     win.append(self.__testBoard[row][col])
-                print(win)
+                    #print("yes" + str(win))
+                #else:
+#                    print("no" + str(win))
 
 
-        return False
-
-    """def vertical_win(self):
-        for row in self.__testBoard:
-            if(row[:-1]==row[1:]):
-                print("winner")
-
-    def horizontal_win(self):
-        for row in self.__testBoard:
-            
-            if(col += ):
-                print("winner")
-            else:
-                print(row[:-1])
-                print(row[1:])"""
+        return False"""
 
 
 
