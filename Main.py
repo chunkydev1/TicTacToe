@@ -1,4 +1,3 @@
-import numpy as np
 import re
 
 class Game():
@@ -12,12 +11,11 @@ class Game():
             ["", "", ""],
             ["", "", ""]
         ]
-        self.__testBoard =[
-            ["7", "2", "1"],
-            ["4", "7", "1"],
-            ["4", "8", "7"]
-        ]
-        #self.__board[1][2] = "hi"
+        """        self.__board = [
+            ["Troy", "Cody", ""],
+            ["Cody", "Troy", "Troy"],
+            ["Cody", "Troy", "Cody"]
+        ]"""
 
     def get_board(self):
         return self.__board
@@ -26,86 +24,60 @@ class Game():
         self.__board[int(xpos)][int(ypos)] = name
 
     def display_board(self):
-        print(self.get_board())
-
-
-    def look_inside_board(self,r,c):
-        if r >= len(self.__testBoard):
-            return
-        if c < len(self.__testBoard[r]):
-            print(self.__testBoard[r][c])
-            self.look_inside_board(r,c+1)
-        else:
-            print("next")
-            self.look_inside_board(r+1,0)
-
-
-
-#UNFINISHED
+        self.__board = self.get_board()
+        for row in self.__board:
+            print(row)
 
 
     def search_board(self, row, col, dr, dc, length):
 
-        value = self.__testBoard[row][col]
-        if value is None:
+        value = self.__board[row][col]
+        if value == "":
             return False
 
         for i in range(length):
             r = row + i * dr
             c = col + i * dc
             # Check bounds and value
-            if not (0 <= r < len(self.__testBoard) and 0 <= c < len(self.__testBoard[0]) and self.__testBoard[r][c] == value):
+            if not (0 <= r < len(self.__board) and 0 <= c < len(self.__board[0]) and self.__board[r][c] == value):
                 return False
 
         return True
 
     def check_pattern(self, length):
 
-        rows = len(self.__testBoard)
-        cols = len(self.__testBoard[0])
+        rows = len(self.__board)
+        cols = len(self.__board[0])
 
-        #              right, down, diagonal-right, diagonal-left
+        #            right, down, diagonal-r, diagonal-l
         directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
 
         for row in range(rows):
             for col in range(cols):
                 for dr, dc in directions:
                     if self.search_board(row, col, dr, dc, length):
-                        return True, self.__testBoard[row][col]
+                        return True, self.__board[row][col]
 
         return False, None
 
+    def check_catsgame(self):
+        self.__board = self.get_board()
+        for row in self.__board:
+            if '' in row:
+                return False
+
+        return True
 
     def is_game_over(self):
-
         # Check for a winner (3 in a row)
         found, winner = self.check_pattern(3)
+        catsGame = self.check_catsgame()
         if found:
             print(f"Winner: {winner}")
-        else:
-            print("No winner yet.")
-
-
-"""    def is_game_over(self):
-        print("checking is game over")
-        #self.vertical_win()
-
-        win = []
-        for row in range(0,len(self.__testBoard)):
-            for col in range(0,len(self.__testBoard)):
-                #horizontal
-                #print(row, col)
-
-                self.look_inside_board(row,col)
-
-                if self.__testBoard[row][col] == self.__testBoard[row][col]:
-                    win.append(self.__testBoard[row][col])
-                    #print("yes" + str(win))
-                #else:
-#                    print("no" + str(win))
-
-
-        return False"""
+            return True
+        elif catsGame:
+            print("No one wins, it's a cats-game")
+            return True
 
 
 
@@ -142,9 +114,9 @@ class GameManager:
     def run_game(self):
 
         while not self.__currentGame.is_game_over():
-            print("new loop")
+            #print("new loop")
             self.play_turn(self.__players)
-        print("finished running game")
+        #print("finished running game")
 
 
     def play_turn(self,playerList):
@@ -164,7 +136,7 @@ class GameManager:
             print("Not valid. Asking again")
             self.ask_for_move(self.__playerName)
         else:
-            print("everything looks good")
+            #print("everything looks good")
             self.__currentGame.add_move_to_board(self.__playerInput,self.__playerName)
 
     def check_if_valid_inputs(self):
@@ -178,7 +150,7 @@ class GameManager:
                 print("Invalid Input, try again")
                 return False
 
-        print("Done checking inputs")
+        #print("Done checking inputs")
         return True
 
 
