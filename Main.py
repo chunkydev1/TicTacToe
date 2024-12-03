@@ -4,7 +4,7 @@ import random
 import names
 
 
-class Game(abc.ABC):
+class Gameboard(abc.ABC):
 
     @abc.abstractmethod
     def set_move_on_board(self,move: list[str],name: str) -> None:
@@ -48,6 +48,14 @@ class Game(abc.ABC):
     def game_is_tie(self) -> bool:
         pass
 
+class InputRules(abc.ABC):
+    pass
+
+
+class WinCriteria(abc.ABC):
+    pass
+
+
 
 
 class players(abc.ABC):
@@ -68,7 +76,7 @@ class players(abc.ABC):
 
 
 
-class tictactoe(Game):
+class tictactoe(Gameboard):
 
     def __init__(self) -> None:
         self.__board = [
@@ -177,10 +185,7 @@ class manualplayer(players):
 
     def __init__(self) -> None:
         super().__init__(name= RandomName())
-        self.__name = super().get_name()
-
-    def get_name(self) -> str:
-        return self.__name
+        self.__name = self.get_name()
 
     def get_move(self) -> list[str]:
         pinput = input(self.__name + ", please play your move")
@@ -192,7 +197,7 @@ class manualplayer(players):
     #Part of me wants it in the game object because the game is responsible for doing game things (the game flow)....
     #BUT the game doesn't know anything about a player object so I know this isn't correct.
 
-def game_in_progress(g: Game, groupofplayers: list[players]) -> bool:
+def game_in_progress(g: Gameboard, groupofplayers: list[players]) -> bool:
     for p in groupofplayers:
         g.display_board()
         pname = p.get_name()
@@ -216,10 +221,7 @@ class playerAI(players):
 
     def __init__(self, name: str = "NPC") -> None:
         super().__init__(name=name)
-        self.__name = super().get_name()
-
-    def get_name(self) -> str:
-        return self.__name
+        self.__name = self.get_name()
 
     def get_move(self) -> list[str]:
         x = str(random.randint(0,2))
