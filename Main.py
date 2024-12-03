@@ -1,58 +1,76 @@
 import re
 import abc
+import random
+import names
+
 
 class Game(abc.ABC):
 
     @abc.abstractmethod
-    def __init__(self):
-        pass
-
-    @abc.abstractmethod
-    def set_move_on_board(self,move,name):
+    def set_move_on_board(self,move: list[str],name: str) -> None:
         pass
 
     #unused
     @abc.abstractmethod
-    def get_board(self):
+    def get_board(self) -> list[list[str]]:
         pass
 
     @abc.abstractmethod
-    def display_board(self):
+    def display_board(self) -> None:
         pass
 
     @abc.abstractmethod
-    def valid_inputs(self,playerinputs):
+    def valid_inputs(self,playerinputs: list[str]) -> bool:
         pass
 
     @abc.abstractmethod
-    def spot_is_playable(self,playerinputs):
+    def spot_is_playable(self,playerinputs: list[str]) -> bool:
         pass
 
     #unused
     @abc.abstractmethod
-    def get_valid_inputs(self):
+    def get_valid_inputs(self) -> list[str]:
         pass
 
     @abc.abstractmethod
-    def game_is_won(self,name):
+    def game_is_won(self,name: str) -> bool:
         pass
 
     @abc.abstractmethod
-    def check_pattern(self, length):
+    def check_pattern(self, length: int) -> tuple[bool, None or str]:
         pass
 
     @abc.abstractmethod
-    def search_board(self, row, col, xdir, ydir, length):
+    def search_board(self, row: int, col: int, xdir: int, ydir: int, length: int) -> bool:
         pass
 
     @abc.abstractmethod
-    def game_is_tie(self):
+    def game_is_tie(self) -> bool:
         pass
+
+
+
+class players(abc.ABC):
+
+    def __init__(self,name: str) -> None:
+        self.__name = name
+
+    def get_name(self) -> str:
+        return self.__name
+
+    def set_name(self,name: str) -> None:
+        self.name = name
+
+
+    @abc.abstractmethod
+    def get_move(self) -> list[str]:
+        pass
+
 
 
 class tictactoe(Game):
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.__board = [
             ["", "", ""],
             ["", "", ""],
@@ -61,21 +79,23 @@ class tictactoe(Game):
         self.__validinputs = ["0","1","2"]
         self.__winlength = 3
 
-
-    def set_move_on_board(self,playermove,name):
+# board info -------------------------------------------------------
+    def set_move_on_board(self,playermove: list[str],name: str) -> None:
         x = int(playermove[0])
         y = int(playermove[1])
 
         self.__board[x][y] = name
 
-    def get_board(self):
+    def get_board(self) -> list[list[str]]:
         return self.__board
 
-    def display_board(self):
+    def display_board(self) -> None:
         for row in self.__board:
             print(row)
 
-    def valid_inputs(self,playerinputs):
+# input rules -------------------------------------------------------
+
+    def valid_inputs(self,playerinputs: list[str]) -> bool:
         if len(playerinputs) != 2:
             return False
 
@@ -86,7 +106,7 @@ class tictactoe(Game):
         #print("valid")
         return True
 
-    def spot_is_playable(self,playerinputs):
+    def spot_is_playable(self,playerinputs: list[str]) -> bool:
         x = int(playerinputs[0])
         y = int(playerinputs[1])
 
@@ -97,19 +117,19 @@ class tictactoe(Game):
         return True
 
 
-    def get_valid_inputs(self):
+    def get_valid_inputs(self) -> list[str]:
         return self.__validinputs
 
-
-    def game_is_won(self,playername):
+# Win criteria -------------------------------------------------------
+    def game_is_won(self,playername: str) -> bool:
         found, winner = self.check_pattern(self.__winlength)
         if found:
             self.display_board()
-            print("Winner: " +winner)
+            print("Winner: " + winner)
             return True
 
 
-    def check_pattern(self, length):
+    def check_pattern(self, length: int) -> tuple[bool, None or str]:
 
         rows = len(self.__board)
         cols = len(self.__board[0])
@@ -126,7 +146,7 @@ class tictactoe(Game):
         return False, None
 
 
-    def search_board(self, row, col, xdir, ydir, length):
+    def search_board(self, row: int, col: int, xdir: int, ydir: int, length: int) -> bool:
 
         lookupvalue = self.__board[row][col]
         if lookupvalue == "":
@@ -142,7 +162,7 @@ class tictactoe(Game):
         return True
 
 
-    def game_is_tie(self):
+    def game_is_tie(self) -> bool:
         for row in self.__board:
             if "" in row:
                 return False
@@ -153,15 +173,16 @@ class tictactoe(Game):
 
 
 
-class Player():
+class manualplayer(players):
 
-    def __init__(self, name):
-        self.__name = name
+    def __init__(self) -> None:
+        super().__init__(name= RandomName())
+        self.__name = super().get_name()
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self.__name
 
-    def get_move(self):
+    def get_move(self) -> list[str]:
         pinput = input(self.__name + ", please play your move")
 
         return re.findall(r'[0-9]+',pinput)
@@ -171,8 +192,8 @@ class Player():
     #Part of me wants it in the game object because the game is responsible for doing game things (the game flow)....
     #BUT the game doesn't know anything about a player object so I know this isn't correct.
 
-def game_in_progress(g,players):
-    for p in players:
+def game_in_progress(g: Game, groupofplayers: list[players]) -> bool:
+    for p in groupofplayers:
         g.display_board()
         pname = p.get_name()
 
@@ -185,13 +206,36 @@ def game_in_progress(g,players):
             return False
     return True
 
+def RandomName():
+    name = names.get_first_name()
+    print(name)
+    return name
+
+
+class playerAI(players):
+
+    def __init__(self, name: str = "NPC") -> None:
+        super().__init__(name=name)
+        self.__name = super().get_name()
+
+    def get_name(self) -> str:
+        return self.__name
+
+    def get_move(self) -> list[str]:
+        x = str(random.randint(0,2))
+        y = str(random.randint(0, 2))
+        print(self.__name + " has made a move")
+        return [x,y]
+
 
 if __name__ == '__main__':
+    AI = playerAI()
+
     ttt = tictactoe()
-    players = [Player("Cody"), Player("Troy")]
+    playersingame = [manualplayer(), AI]
 
     #please don't judge me too hard for this. I am unsure how to nicely facilitate the game.
-    while game_in_progress(ttt, players):
+    while game_in_progress(ttt, playersingame):
         pass
 
 
