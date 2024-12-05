@@ -57,26 +57,27 @@ class InputRules(abc.ABC):
 
 class WinCriteria(abc.ABC):
 
-    def __init__(self, winlength: int) -> None:
+    def __init__(self, getboard: callable(Gameboard), winlength: int) -> None:
+        self.__getboard = getboard
         self.__winlength = winlength
 
     def get_win_length(self) -> int:
         return self.__winlength
 
     @abc.abstractmethod
-    def game_is_won(self, board: list[list[str]]) -> bool:
+    def game_is_won(self) -> bool:
         pass
 
     @abc.abstractmethod
-    def check_pattern(self, board: list[str]) -> tuple[bool, None or str]:
+    def check_pattern(self) -> tuple[bool, None or str]:
         pass
 
     @abc.abstractmethod
-    def search_board(self, board: list[list[str]], row: int, col: int, xdir: int, ydir: int, length: int, lookupvalue: str) -> bool:
+    def search_board(self, row: int, col: int, xdir: int, ydir: int, length: int, lookupvalue: str) -> bool:
         pass
 
     @abc.abstractmethod
-    def game_is_tie(self, board: list[list[str]]) -> bool:
+    def game_is_tie(self) -> bool:
         pass
 
 
@@ -130,7 +131,7 @@ class tictactoe(Gameboard):
         self.__winlength = 3
 
         self.__rules = tttinputrules(self.__validinputs)
-        self.__win = tttwin(self.__winlength)
+        self.__win = tttwin(self.get_board(),self.__winlength)
 
     def set_move_on_board(self,playermove: list[str],name: str) -> None:
         x = int(playermove[0])
@@ -196,20 +197,24 @@ class tttinputrules(InputRules):
 
 class tttwin(WinCriteria):
 
-    def __init__(self,winlength: int) -> None:
-        super().__init__(winlength)
+    def __init__(self,getboard: callable(Gameboard), winlength: int) -> None:
+        super().__init__(getboard,winlength)
         self.__winlength = self.get_win_length()
+        self.__getboard = getboard
 
 
 
-    def game_is_won(self,board: list[list[str]]) -> bool:
-        found, winner = self.check_pattern(board)
+    def game_is_won(self) -> bool:
+
+        found, winner = self.check_pattern()
         if found:
             print("Winner: " + winner)
             return True
 
 
-    def check_pattern(self, board: list[list[str]]) -> tuple[bool, None or str]:
+    def check_pattern(self) -> tuple[bool, None or str]:
+
+        board = self.__getboard
 
         rows = len(board)
         cols = len(board[0])
@@ -221,13 +226,15 @@ class tttwin(WinCriteria):
             for col in range(cols):
                 for xdir, ydir in directions:
                     valuetolookup = board[row][col]
-                    if self.search_board(board, row, col, xdir, ydir, self.__winlength, valuetolookup):
+                    if self.search_board(row, col, xdir, ydir, self.__winlength, valuetolookup):
                         return True, board[row][col]
 
         return False, None
 
 
-    def search_board(self, board: list[list[str]], row: int, col: int, xdir: int, ydir: int, length: int, lookupvalue: str) -> bool:
+    def search_board(self, row: int, col: int, xdir: int, ydir: int, length: int, lookupvalue: str) -> bool:
+
+        board = self.__getboard
 
         if lookupvalue == "":
             return False
@@ -242,7 +249,10 @@ class tttwin(WinCriteria):
         return True
 
 
-    def game_is_tie(self, board: list[list[str]]) -> bool:
+    def game_is_tie(self) -> bool:
+
+        board = self.__getboard
+
         for row in board:
             if "" in row:
                 return False
@@ -293,7 +303,7 @@ def run_game(g: Gameboard, playersingame: list[players]) -> None:
         ttt.set_move_on_board(move,name)
         ttt.display_board()
 
-        if winrules.game_is_won(board) or winrules.game_is_tie(board):
+        if winrules.game_is_won() or winrules.game_is_tie():
             return
     run_game(g,playersingame)
 
