@@ -100,6 +100,9 @@ class players(abc.ABC):
     def get_move(self) -> list[str]:
         pass
 
+    def get_random_name(self) -> str:
+        randname = names.get_first_name()
+        return randname
 
 
 
@@ -253,17 +256,13 @@ class tttwin(WinCriteria):
 class manualplayer(players):
 
     def __init__(self) -> None:
-        super().__init__(name= self.random_name())
+        super().__init__(name= self.get_random_name())
         self.__name = self.get_name()
 
     def get_move(self) -> list[str]:
         pinput = input(self.__name + ", please play your move")
 
         return re.findall(r'[0-9]+',pinput)
-
-    def random_name(self):
-        randname = names.get_first_name()
-        return randname
 
 
 
@@ -286,7 +285,7 @@ def run_game(g: Gameboard, playersingame: list[players]) -> None:
         name = p.get_name()
         winrules = ttt.get_win_criteria()
         gameinputs = ttt.get_input_rules()
-        
+
         while not gameinputs.valid_inputs(move) or not gameinputs.spot_is_playable(board, move):
             print("Input not valid, try again")
             move = p.get_move()
