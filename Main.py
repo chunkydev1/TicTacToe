@@ -288,13 +288,15 @@ class playerAI(players):
         print(self.__name + " has made a move")
         return [x,y]
 
+
+
 def run_game(g: Gameboard, playersingame: list[players]) -> None:
     for p in playersingame:
         board = g.get_board()
         move = p.get_move()
         name = p.get_name()
-        winrules = ttt.get_win_criteria()
-        gameinputs = ttt.get_input_rules()
+        winrules = g.get_win_criteria()
+        gameinputs = g.get_input_rules()
 
         while not gameinputs.valid_inputs(move) or not gameinputs.spot_is_playable(board, move):
             print("Input not valid, try again")
@@ -312,6 +314,7 @@ if __name__ == '__main__':
     AI = playerAI()
     ttt = tictactoe()
     playersingame = [manualplayer(), AI]
-
     ttt.display_board()
+
+
     run_game(ttt,playersingame)
