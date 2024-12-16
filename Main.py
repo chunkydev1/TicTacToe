@@ -2,6 +2,8 @@ import re
 import abc
 import random
 import names
+from dataclasses import dataclass
+from typing import Optional
 
 
 class Gameboard(abc.ABC):
@@ -79,6 +81,9 @@ class WinCriteria(abc.ABC):
     @abc.abstractmethod
     def game_is_tie(self) -> bool:
         pass
+
+
+
 
 
 
@@ -188,11 +193,10 @@ class tttinputrules(InputRules):
         return True
 
 
-
-
-
-
-
+@dataclass
+class PatternResult:
+    found: bool
+    winner: Optional[str]
 
 
 class tttwin(WinCriteria):
@@ -212,7 +216,7 @@ class tttwin(WinCriteria):
             return True
 
 
-    def check_pattern(self) -> tuple[bool, None or str]:
+    def check_pattern(self) -> PatternResult:
 
         board = self.__getboard
 
@@ -227,9 +231,9 @@ class tttwin(WinCriteria):
                 for xdir, ydir in directions:
                     valuetolookup = board[row][col]
                     if self.search_board(row, col, xdir, ydir, self.__winlength, valuetolookup):
-                        return True, board[row][col]
+                        return PatternResult(found= True, winner= board[row][col])
 
-        return False, None
+        return PatternResult(found= False, winner= None)
 
 
     def search_board(self, row: int, col: int, xdir: int, ydir: int, length: int, lookupvalue: str) -> bool:
@@ -295,15 +299,17 @@ def run_game(g: Gameboard, playersingame: list[players]) -> None:
         board = g.get_board()
         move = p.get_move()
         name = p.get_name()
-        winrules = g.get_win_criteria()
+        
         gameinputs = g.get_input_rules()
 
         while not gameinputs.valid_inputs(move) or not gameinputs.spot_is_playable(board, move):
             print("Input not valid, try again")
             move = p.get_move()
 
-        ttt.set_move_on_board(move,name)
-        ttt.display_board()
+        g.set_move_on_board(move,name)
+        g.display_board()
+        
+        winrules = g.get_win_criteria()
 
         if winrules.game_is_won() or winrules.game_is_tie():
             return
