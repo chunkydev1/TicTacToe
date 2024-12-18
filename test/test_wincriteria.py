@@ -1,5 +1,5 @@
 import pytest
-import Main as main
+import Main
 from Main import PatternResult
 from unittest.mock import Mock, patch
 
@@ -16,7 +16,7 @@ def wincriteria(mock_get_board):
         ["", "", ""],
         ["", "", ""]
     ]
-    return main.tttwin(getboard=mock_get_board, winlength=3)
+    return Main.tttwin(getboard=mock_get_board, winlength=3)
 
 
 def test_game_won(wincriteria):
@@ -33,6 +33,7 @@ def test_game_not_won(wincriteria):
     assert None == result, f"Game is over but it should NOT be"
 
 
+# This test doesn't do much because I end the for loop immediately and then it returns. Not sure how to test this method/ if I need to..?
 def test_check_pattern_win(mock_get_board, wincriteria):
     mock_get_board.return_value = [
         ["X", "", ""],
@@ -45,6 +46,7 @@ def test_check_pattern_win(mock_get_board, wincriteria):
     assert result == PatternResult(True, "X"), f"failed for some reason"
 
 
+# This test doesn't do much because I end the for loop immediately and then it returns. Not sure how to test this method/ if I need to..?
 def test_check_pattern_no_win(mock_get_board, wincriteria):
     mock_get_board.return_value = [
         ["X", "", ""],

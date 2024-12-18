@@ -1,9 +1,9 @@
 import pytest
-import Main as main
+import Main
 
 @pytest.fixture
 def ttt_board():
-    return main.tictactoe()
+    return Main.tictactoe()
 
 
 def test_board_init(ttt_board):

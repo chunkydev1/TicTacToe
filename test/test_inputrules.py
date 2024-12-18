@@ -1,13 +1,13 @@
 import pytest
-import Main as main
+import Main
 
 @pytest.fixture
 def inputrules():
-    return main.tttinputrules(inputs=["0","1","2"])
+    return Main.tttinputrules(inputs=["0","1","2"])
 
 @pytest.fixture
 def ttt_board():
-    return main.tictactoe()
+    return Main.tictactoe()
 
 
 def test_valid_inputs(inputrules):
