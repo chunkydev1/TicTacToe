@@ -8,6 +8,10 @@ def inputrules():
 @pytest.fixture
 def ttt_board():
     return Main.tictactoe()
+###
+### I don't get the fixtures for objects... :thonk:
+###
+
 
 
 def test_valid_inputs(inputrules):
@@ -22,9 +26,9 @@ def test_invalid_inputs(inputrules):
 
 
 
-
-
 def test_spot_playable(inputrules,empty_ttt_board):
+    ### Calling fixtures directly is bad hat. 
+    ### You're allowed to, but it's asking for problems. 
     board = ttt_board.get_board()
     assert inputrules.spot_is_playable(board,["0","1"]), f"spot is NOT playable"
     assert inputrules.spot_is_playable(board, ["2", "1"]), f"spot is NOT playable"
