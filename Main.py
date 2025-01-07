@@ -258,6 +258,11 @@ class PatternResult:
     found: bool
     winner: Optional[str]
 
+# ## Named Tuple Example: 
+# from collections import namedtuple
+# PatternResult = namedtuple('PatternResult', ['found', 'winner'])
+
+
 
 class tttwin(WinCriteria):
 
