@@ -5,6 +5,8 @@ import names
 from dataclasses import dataclass
 from typing import Optional
 
+class Game(abc.ABC):
+    pass
 
 class Gameboard(abc.ABC):
 
@@ -161,7 +163,7 @@ class tttinputrules(InputRules):
 @dataclass
 class PatternResult:
     found: bool
-    winner: Optional[str]
+    name: Optional[str]
 
 
 class tttwin(WinCriteria):
@@ -173,14 +175,14 @@ class tttwin(WinCriteria):
 
     def game_is_won(self) -> bool:
 
-        found, winner = self.check_pattern()
-        if found:
-            print("Winner: " + winner)
+        winner = self.check_pattern()
+        if winner.found:
+            print("Winner: " + winner.name)
             return True
 
     def check_pattern(self) -> PatternResult:
 
-        board = self.__getboard()
+        board = self.__getboard
         # print(f"board recieved: {type(board)}")
 
         rows = len(board)
@@ -194,13 +196,12 @@ class tttwin(WinCriteria):
                 for rdir, cdir in directions:
                     valuetolookup = board[row][col]
                     if self.search_board(row, col, rdir, cdir, self.__winlength, valuetolookup):
-                        return PatternResult(found=True, winner=board[row][col])
-
-        return PatternResult(found=False, winner=None)
+                        return PatternResult(found=True, name=board[row][col])
+        return PatternResult(found=False, name=None)
 
     def search_board(self, row: int, col: int, rdir: int, cdir: int, length: int, lookupvalue: str) -> bool:
 
-        board = self.__getboard()
+        board = self.__getboard
 
         if lookupvalue == "":
             return False
@@ -216,7 +217,7 @@ class tttwin(WinCriteria):
 
     def game_is_tie(self) -> bool:
 
-        board = self.__getboard()
+        board = self.__getboard
 
         for row in board:
             if "" in row:
