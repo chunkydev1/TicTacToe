@@ -4,26 +4,6 @@ from dataclasses import dataclass
 from typing import List, TypeVar, Optional
 
 
-'''
-Code Flow: 
-GameRunner -> top level class
-	- Implement a version of gamerunner for your specific class. 
-	- Dependent: Gameboard and Players
-
-Player -> implement a version of that as needed 
-Gameboard -> Board implementation for the game in question 
-	- GameBoard depends on a BoardRuleset, BoardLocations, Moves, and MoveResults
-	- Moves and MoveResults are the communication tools to update the board. 
-	- BoardLocations are used to inspect the board 
-	- BoardRuleset's are used to validate Moves
-
-Move -> Honestly a bad class, but I wanted something to encapsulate the move data 
-	- Might be better to re-work to match BoardLocation more 
-MoveResult -> Data helper to track all the information in a readable way 
-	- Also hides some fo the retry logic which is nice.  
-
-'''
-
 
 
 
