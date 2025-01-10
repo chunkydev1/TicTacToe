@@ -6,18 +6,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 class Game(abc.ABC):
-    pass
-
-class Gameboard(abc.ABC):
-
-    @abc.abstractmethod
-    def set_move_on_board(self, move: list[str], name: str) -> None:
-        pass
-
-    # unused
-    @abc.abstractmethod
-    def get_board(self) -> list[list[str]]:
-        pass
 
     @abc.abstractmethod
     def get_input_rules(self):
@@ -28,60 +16,97 @@ class Gameboard(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def get_gameboard(self):
+        pass
+
+@dataclass
+class BoardBlueprints:
+    grid: list[list[str]]
+
+
+@dataclass
+class PlayerMove:
+    location: list[str]
+    playername: str
+    playertype: str
+
+
+class Board(abc.ABC):
+
+    def __init__(self, blueprints: BoardBlueprints):
+        self.__board = blueprints
+
+    @abc.abstractmethod
+    def set_move_on_board(self, move: PlayerMove) -> None:
+        pass
+
+    def get_board(self) -> BoardBlueprints:
+        return self.__board
+
+    @abc.abstractmethod
     def display_board(self) -> None:
         pass
 
 
 class InputRules(abc.ABC):
 
-    def __init__(self, inputs: list[str]) -> None:
-        self.__vinputs = inputs
+    def __init__(self, vinputs: list[str]) -> None:
+        self.__vinputs = vinputs
 
     @abc.abstractmethod
-    def valid_inputs(self, playerinputs: list[str]) -> bool:
+    def valid_inputs(self, pinputs: PlayerMove) -> bool:
         pass
 
     # spot_is_playable could be in gameboard because its sole responsibility is to look at the board, but I think its better here because the rules of a valid input are 2 things:
     # 1- must be within bounds (def valid_inputs)
     # 2- must be a location not already played (spot_is_playable).
     @abc.abstractmethod
-    def spot_is_playable(self, board: list[list[str]], playerinputs: list[str]) -> bool:
+    def spot_is_playable(self, board: BoardBlueprints, playerinputs: PlayerMove) -> bool:
         pass
 
     def get_valid_inputs(self) -> list[str]:
         return self.__vinputs
 
+@dataclass
+class SearchingMaterials:
+    board: BoardBlueprints
+    row: int
+    col: int
+    rdir: int
+    cdir: int
+    length: int
+    lookupvalue: str
 
 class WinCriteria(abc.ABC):
 
-    def __init__(self, getboard: callable(Gameboard), winlength: int) -> None:
-        self.__getboard = getboard
+    def __init__(self, winlength: int) -> None:
         self.__winlength = winlength
 
     def get_win_length(self) -> int:
         return self.__winlength
 
     @abc.abstractmethod
-    def game_is_won(self) -> bool:
+    def game_is_won(self, board: BoardBlueprints) -> bool:
         pass
 
     @abc.abstractmethod
-    def check_pattern(self) -> tuple[bool, None or str]:
+    def check_pattern(self, board: BoardBlueprints) -> tuple[bool, None or str]:
         pass
 
     @abc.abstractmethod
-    def search_board(self, row: int, col: int, xdir: int, ydir: int, length: int, lookupvalue: str) -> bool:
+    def search_board(self,searchinfo: SearchingMaterials) -> bool:
         pass
 
     @abc.abstractmethod
-    def game_is_tie(self) -> bool:
+    def game_is_tie(self, board: BoardBlueprints) -> bool:
         pass
 
 
 class players(abc.ABC):
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, type: str) -> None:
         self.__name = name
+        self.__playertype = type
 
     def get_name(self) -> str:
         return self.__name
@@ -89,8 +114,11 @@ class players(abc.ABC):
     def set_name(self, name: str) -> None:
         self.name = name
 
+    def get_player_type(self):
+        return self.__playertype
+
     @abc.abstractmethod
-    def get_move(self) -> list[str]:
+    def get_move(self) -> PlayerMove:
         pass
 
     def get_random_name(self) -> str:
@@ -98,28 +126,23 @@ class players(abc.ABC):
         return randname
 
 
-class tictactoe(Gameboard):
+class tictactoe(Game):
 
     def __init__(self) -> None:
-        self.__board = [
-            ["", "", ""],
-            ["", "", ""],
-            ["", "", ""]
-        ]
+        self.__board = tttboard(
+            blueprints=BoardBlueprints(
+                grid=[
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""]
+                ]
+            )
+        )
         self.__validinputs = ["0", "1", "2"]
         self.__winlength = 3
 
         self.__rules = tttinputrules(self.__validinputs)
-        self.__win = tttwin(self.get_board(), self.__winlength)
-
-    def set_move_on_board(self, playermove: list[str], name: str) -> None:
-        x = int(playermove[0])
-        y = int(playermove[1])
-
-        self.__board[x][y] = name
-
-    def get_board(self) -> list[list[str]]:
-        return self.__board
+        self.__win = tttwin(self.__winlength)
 
     def get_input_rules(self) -> InputRules:
         return self.__rules
@@ -127,33 +150,53 @@ class tictactoe(Gameboard):
     def get_win_criteria(self) -> WinCriteria:
         return self.__win
 
+    def get_gameboard(self) -> Board:
+        return self.__board
+
+
+class tttboard(Board):
+
+    def __int__(self, blueprints: BoardBlueprints):
+        super().__init__(blueprints)
+
+    def set_move_on_board(self, move: PlayerMove) -> None:
+        board = self.get_board()
+        loc = move.location
+        name = move.playername
+
+        x = int(loc[0])
+        y = int(loc[1])
+
+        board.grid[x][y] = name
+        print(name + " has made a move")
+
     def display_board(self) -> None:
-        for row in self.__board:
+        board = self.get_board()
+        for row in board.grid:
             print(row)
 
 
 class tttinputrules(InputRules):
 
-    def __init__(self, inputs: list[str]) -> None:
-        super().__init__(inputs)
-        self.__validinputs = self.get_valid_inputs()
+    def __init__(self, vinputs: list[str]) -> None:
+        super().__init__(vinputs)
 
-    def valid_inputs(self, playerinputs: list[str]) -> bool:
-        if len(playerinputs) != 2:
+    def valid_inputs(self, playerinputs: PlayerMove) -> bool:
+        if len(playerinputs.location) != 2:
             return False
 
-        for pi in playerinputs:
-            if pi not in self.__validinputs:
+        for pi in playerinputs.location:
+            if pi not in self.get_valid_inputs():
                 # print("not valid")
                 return False
         # print("valid")
         return True
 
-    def spot_is_playable(self, board: list[list[str]], playerinputs: list[str]) -> bool:
-        x = int(playerinputs[0])
-        y = int(playerinputs[1])
+    def spot_is_playable(self, board: BoardBlueprints, playerinputs: PlayerMove) -> bool:
+        x = int(playerinputs.location[0])
+        y = int(playerinputs.location[1])
 
-        if board[x][y] != "":
+        if board.grid[x][y] != "":
             # print("not playable")
             return False
         # print("playable")
@@ -168,25 +211,22 @@ class PatternResult:
 
 class tttwin(WinCriteria):
 
-    def __init__(self, getboard: callable(Gameboard), winlength: int) -> None:
-        super().__init__(getboard, winlength)
-        self.__winlength = self.get_win_length()
-        self.__getboard = getboard
+    def __init__(self, winlength: int) -> None:
+        super().__init__( winlength)
 
-    def game_is_won(self) -> bool:
+    def game_is_won(self, board: BoardBlueprints) -> bool:
 
-        winner = self.check_pattern()
+        winner = self.check_pattern(board)
         if winner.found:
             print("Winner: " + winner.name)
             return True
 
-    def check_pattern(self) -> PatternResult:
+    def check_pattern(self, board: BoardBlueprints) -> PatternResult:
 
-        board = self.__getboard
         # print(f"board recieved: {type(board)}")
 
-        rows = len(board)
-        cols = len(board[0])
+        rows = len(board.grid)
+        cols = len(board.grid[0])
 
         #             right,   down, right+down, left+down
         directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
@@ -194,32 +234,38 @@ class tttwin(WinCriteria):
         for row in range(rows):
             for col in range(cols):
                 for rdir, cdir in directions:
-                    valuetolookup = board[row][col]
-                    if self.search_board(row, col, rdir, cdir, self.__winlength, valuetolookup):
-                        return PatternResult(found=True, name=board[row][col])
+                    valuetolookup = board.grid[row][col]
+                    if self.search_board(SearchingMaterials(board=board,
+                                                            row=row,
+                                                            col=col,
+                                                            rdir=rdir,
+                                                            cdir=cdir,
+                                                            length=self.get_win_length(),
+                                                            lookupvalue=valuetolookup
+                                                            )
+                                         ):
+                        return PatternResult(found=True, name=board.grid[row][col])
         return PatternResult(found=False, name=None)
 
-    def search_board(self, row: int, col: int, rdir: int, cdir: int, length: int, lookupvalue: str) -> bool:
+    def search_board(self, searchinfo: SearchingMaterials) -> bool:
 
-        board = self.__getboard
-
-        if lookupvalue == "":
+        if searchinfo.lookupvalue == "":
             return False
 
-        for i in range(length):
-            r = row + i * rdir
-            c = col + i * cdir
+        for i in range(searchinfo.length):
+            r = searchinfo.row + i * searchinfo.rdir
+            c = searchinfo.col + i * searchinfo.cdir
             # Check bounds and value
-            if not (0 <= r < len(board) and 0 <= c < len(board[0]) and board[r][c] == lookupvalue):
+            if not (0 <= r < len(searchinfo.board.grid) and
+                    0 <= c < len(searchinfo.board.grid[0]) and
+                    searchinfo.board.grid[r][c] == searchinfo.lookupvalue
+            ):
                 return False
 
         return True
 
-    def game_is_tie(self) -> bool:
-
-        board = self.__getboard
-
-        for row in board:
+    def game_is_tie(self, board: BoardBlueprints) -> bool:
+        for row in board.grid:
             if "" in row:
                 return False
 
@@ -230,46 +276,44 @@ class tttwin(WinCriteria):
 class manualplayer(players):
 
     def __init__(self) -> None:
-        super().__init__(name=self.get_random_name())
-        self.__name = self.get_name()
+        super().__init__(name=self.get_random_name(), type="Real")
 
-    def get_move(self) -> list[str]:
-        pinput = input(self.__name + ", please play your move")
+    def get_move(self) -> PlayerMove:
+        pinput = input(self.get_name() + ", please play your move")
 
-        return re.findall(r'[0-9]+', pinput)
+        return PlayerMove(location=re.findall(r'[0-9]+', pinput), playername=self.get_name(),
+                          playertype=self.get_player_type())
 
 
 class playerAI(players):
 
-    def __init__(self, name: str = "NPC") -> None:
-        super().__init__(name=name)
-        self.__name = self.get_name()
+    def __init__(self, name: str = "NPC", ptype: str = "Fake") -> None:
+        super().__init__(name=name, type=ptype)
 
-    def get_move(self) -> list[str]:
+    def get_move(self) -> PlayerMove:
         x = str(random.randint(0, 2))
         y = str(random.randint(0, 2))
-        print(self.__name + " has made a move")
-        return [x, y]
+        return PlayerMove(location=[x, y], playername=self.get_name(), playertype=self.get_player_type())
 
 
-def run_game(g: Gameboard, playersingame: list[players]) -> None:
+def run_game(g: Game, playersingame: list[players]) -> None:
     for p in playersingame:
-        board = g.get_board()
+        b = g.get_gameboard()
         move = p.get_move()
-        name = p.get_name()
 
         gameinputs = g.get_input_rules()
 
-        while not gameinputs.valid_inputs(move) or not gameinputs.spot_is_playable(board, move):
-            print("Input not valid, try again")
+        while not gameinputs.valid_inputs(move) or not gameinputs.spot_is_playable(b.get_board(), move):
+            if move == "Real":
+                print("Input not valid, try again")
             move = p.get_move()
 
-        g.set_move_on_board(move, name)
-        g.display_board()
+        b.set_move_on_board(move)
+        b.display_board()
 
         winrules = g.get_win_criteria()
 
-        if winrules.game_is_won() or winrules.game_is_tie():
+        if winrules.game_is_won(b.get_board()) or winrules.game_is_tie(b.get_board()):
             return
     run_game(g, playersingame)
 
@@ -278,6 +322,6 @@ if __name__ == '__main__':
     AI = playerAI()
     ttt = tictactoe()
     playersingame = [manualplayer(), AI]
-    ttt.display_board()
+    #ttt.display_board()
 
     run_game(ttt, playersingame)
